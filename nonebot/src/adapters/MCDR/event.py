@@ -8,7 +8,6 @@ class Event(BaseEvent):
 
     type: str
     name: str
-    uuid: str
     message:str
     def get_type(self) -> str:
         return self.type
@@ -26,10 +25,10 @@ class Event(BaseEvent):
         return self.message
 
     def get_user_id(self) -> str:
-        return self.uuid
+        return self.name
 
     def get_session_id(self) -> str:
-        return self.uuid
+        return self.name
 
     def is_tome(self) -> bool:
         return False
