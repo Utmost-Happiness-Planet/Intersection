@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import json
-from asyncio import coroutines
 from typing import Any
 
 from nonebot.adapters import Adapter as BaseAdapter
@@ -26,10 +25,9 @@ class Adapter(BaseAdapter):
     def __init__(self, driver: Driver, **kwargs: Any):
         super().__init__(driver, **kwargs)
         self.con_map: dict[str, WebSocket] = {}
-        self.count = 0
         if isinstance(self.driver, ReverseDriver):
             name = self.get_name()
-            ws_setup = WebSocketServerSetup(URL(f'/{name}'), name, self._handle_ws)
+            ws_setup = WebSocketServerSetup(URL(f'/{name}'), name, self.__handle)
             self.setup_websocket_server(ws_setup)
 
     @classmethod
@@ -40,14 +38,16 @@ class Adapter(BaseAdapter):
 
     @overrides(BaseAdapter)
     async def _call_api(self, bot: Bot, api: str, **data: Any) -> Any:
-        ...
+        log("DEBUG", f"调用 MCDR API <y>{api}</y>")
+        websocket = self.con_map.get(bot.self_id, None)
+        if websocket:
+            data = json.dumps({
+                "action": api,
+                "params": data,
+            }, cls=DataclassEncoder)
+            await websocket.send(data)
 
-    async def heartbeat(self) -> Any:
-        while True:
-            await asyncio.sleep(1)
-            self.count -= 1
-
-    async def _handle_ws(self, websocket: WebSocket) -> None:
+    async def __handle(self, websocket: WebSocket) -> None:
         server_name = websocket.request.headers.get('server_name')
         if not server_name:
             log('WARNING', '请求头缺少服务名称')
@@ -60,29 +60,21 @@ class Adapter(BaseAdapter):
             name = self.get_name()
             escape_name = escape_tag(name)
             bot = Bot(self, name)
+            self.con_map[name] = websocket
             self.bot_connect(bot)
-            log('INFO', f'<y>Bot {escape_name}</y> connected')
-            asyncio.create_task(self.heartbeat())
-            self.count = 10
+            log('INFO', f'<y>服务器 {escape_name}</y> 已链接')
             try:
-                while self.count > 0:
+                while True:
                     data = json.loads(await websocket.receive())
                     if data['type'] == 'heartbeat':
                         log('INFO', f'<y>Ping</y>')
                         await websocket.send(json.dumps({"type": "heartbeat", "value": "pong"}))
-                        self.count = 10
                     elif event := Event.parse_obj(data):
-                        log('INFO', f'<y>Event</y> {event}')
                         asyncio.create_task(handle_event(bot, event))
             except WebSocketClosed as e:
-                log('WARNING', f'WebSocket for Bot {escape_name} closed by peer')
+                log('WARNING', f'服务器 {escape_name} 已断开链接')
             except Exception as e:
-                log(
-                    'ERROR',
-                    '<r><bg #f8bbd0>Error while process data from websocket '
-                    f'for bot {escape_name}.</bg #f8bbd0></r>',
-                    e,
-                )
+                log('ERROR', f'<r><bg #f8bbd0>从服务器 {escape_name} 获取数据失败</bg #f8bbd0></r>', e)
             finally:
                 with contextlib.suppress(Exception):
                     await websocket.close()

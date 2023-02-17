@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+
 from nonebot.adapters import Event as BaseEvent
 
 from .message import Message
@@ -8,7 +9,8 @@ class Event(BaseEvent):
 
     type: str
     name: str
-    message:str
+    msg: str
+
     def get_type(self) -> str:
         return self.type
 
@@ -19,10 +21,10 @@ class Event(BaseEvent):
         return str(self.dict())
 
     def get_message(self) -> Message:
-        return self.message
+        return self.msg
 
     def get_plaintext(self) -> str:
-        return self.message
+        return self.msg
 
     def get_user_id(self) -> str:
         return self.name

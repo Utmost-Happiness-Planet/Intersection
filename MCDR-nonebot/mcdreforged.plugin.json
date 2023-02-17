@@ -1,0 +1,11 @@
+{
+    "id": "nonebot_client",
+    "version": "0.0.1",
+    "name": "NoneBot Client",
+    "description": "MCDR NoneBot Client",
+    "author": "MC_cubes",
+    "link": "https://github.com/Utmost-Happiness-Planet/Intersection/tree/main/MCDR-nonebot",
+    "dependencies": {
+        "mcdreforged": "^2.6.0"
+    }
+}
