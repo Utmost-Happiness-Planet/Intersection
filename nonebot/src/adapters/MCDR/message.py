@@ -54,6 +54,33 @@ class Message(BaseMessage[MessageSegment]):
     def get_segment_class(cls) -> Type[MessageSegment]:
         return MessageSegment
 
+    @overrides(BaseMessage)
+    def __add__(
+        self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
+    ) -> "Message":
+        return super(Message, self).__add__(
+            MessageSegment.text(other) if isinstance(other, str) else other
+        )
+
+    def __repr__(self) -> str:
+        return "".join(repr(seg) for seg in self)
+
+    @overrides(BaseMessage)
+    def __radd__(
+        self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
+    ) -> "Message":
+        return super(Message, self).__radd__(
+            MessageSegment.text(other) if isinstance(other, str) else other
+        )
+
+    @overrides(BaseMessage)
+    def __iadd__(
+        self, other: Union[str, MessageSegment, Iterable[MessageSegment]]
+    ) -> "Message":
+        return super().__iadd__(
+            MessageSegment.text(other) if isinstance(other, str) else other
+        )
+
     @staticmethod
     @overrides(BaseMessage)
     def _construct(msg: str) -> Iterable[MessageSegment]:
