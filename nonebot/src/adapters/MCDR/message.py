@@ -1,26 +1,60 @@
-from typing import Union, Mapping, Iterable
+from typing import Union, Iterable, Type
 from nonebot.adapters import Message as BaseMessage, MessageSegment as BaseMessageSegment
+from nonebot.typing import overrides
 
 
 class MessageSegment(BaseMessageSegment):
+    @classmethod
+    @overrides(BaseMessageSegment)
+    def get_message_class(cls) -> Type["Message"]:
+        return Message
 
+    @overrides(BaseMessageSegment)
     def __str__(self) -> str:
-        raise NotImplementedError
+        # process special types
+        if self.is_text():
+            self.data.get("text", "")
+        return f"[{self.type}]"
 
-    def __add__(self, other) -> "Message":
-        return Message(self) + other
+    def __repr__(self) -> str:
+        # process special types
+        if self.is_text():
+            self.data.get("text", "")
+        return f"[{self.type}]"
 
-    def __radd__(self, other) -> "Message":
-        return Message(other) + self
+    @overrides(BaseMessageSegment)
+    def __add__(
+            self, other: Union[str, "MessageSegment", Iterable["MessageSegment"]]
+    ) -> "Message":
+        return Message(self) + (
+            MessageSegment.text(other) if isinstance(other, str) else other
+        )
 
+    @overrides(BaseMessageSegment)
+    def __radd__(
+            self, other: Union[str, "MessageSegment", Iterable["MessageSegment"]]
+    ) -> "Message":
+        return (
+            MessageSegment.text(other) if isinstance(other, str) else Message(other)
+        ) + self
+
+    @overrides(BaseMessageSegment)
     def is_text(self) -> bool:
-        raise NotImplementedError
-
-
-class Message(BaseMessage):
+        return self.type == "text"
 
     @staticmethod
-    def _construct(
-        msg: Union[str, Mapping,
-                   Iterable[Mapping]]) -> Iterable[MessageSegment]:
-        raise NotImplementedError
+    def text(text: str) -> "MessageSegment":
+        return MessageSegment("text", {"text": text})
+
+
+class Message(BaseMessage[MessageSegment]):
+
+    @classmethod
+    @overrides(BaseMessage)
+    def get_segment_class(cls) -> Type[MessageSegment]:
+        return MessageSegment
+
+    @staticmethod
+    @overrides(BaseMessage)
+    def _construct(msg: str) -> Iterable[MessageSegment]:
+        yield MessageSegment("text", {"text": msg})
