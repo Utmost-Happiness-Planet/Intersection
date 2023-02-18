@@ -45,6 +45,7 @@ class Adapter(BaseAdapter):
                 "action": api,
                 "params": data,
             }, cls=DataclassEncoder)
+            log("DEBUG", f"data <y>{data}</y>")
             await websocket.send(data)
 
     async def __handle(self, websocket: WebSocket) -> None:
@@ -67,8 +68,7 @@ class Adapter(BaseAdapter):
                 while True:
                     data = json.loads(await websocket.receive())
                     if data['type'] == 'heartbeat':
-                        log('INFO', f'<y>Ping</y>')
-                        await websocket.send(json.dumps({"type": "heartbeat", "value": "pong"}))
+                        ...
                     elif event := Event.parse_obj(data):
                         asyncio.create_task(handle_event(bot, event))
             except WebSocketClosed as e:
