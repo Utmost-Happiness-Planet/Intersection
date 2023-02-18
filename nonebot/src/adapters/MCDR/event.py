@@ -8,11 +8,12 @@ from .message import Message
 class Event(BaseEvent):
 
     type: str
+    event_type: str
     name: str
-    msg: str
+    msg: Message
 
     def get_type(self) -> str:
-        return self.type
+        return self.event_type
 
     def get_event_name(self) -> str:
         return self.name
@@ -24,7 +25,7 @@ class Event(BaseEvent):
         return self.msg
 
     def get_plaintext(self) -> str:
-        return self.msg
+        return str(self.msg)
 
     def get_user_id(self) -> str:
         return self.name

@@ -9,7 +9,7 @@ driver.register_adapter(ONEBOT_V11Adapter)
 driver.register_adapter(MCDRAdapter)
 
 nonebot.load_builtin_plugins('echo', 'single_session')
-
+nonebot.load_plugins('src/plugins')
 
 # nonebot.load_from_toml("pyproject.toml")
 

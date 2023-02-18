@@ -32,7 +32,7 @@ def on_info(server: PluginServerInterface, info: Info):
         name = info.player
     elif info.is_from_server:
         type = 'server'
-    q.put({'type': type, 'name': name, 'msg': info.content})
+    q.put({'type': type, 'event_type': 'message', 'name': name, 'msg': info.content})
     if not info.is_user and re.fullmatch(r'Starting Minecraft server on \S*', info.content):
         server.logger.info('Minecraft is starting at address {}'.format(
             info.content.rsplit(' ', 1)[1]))
