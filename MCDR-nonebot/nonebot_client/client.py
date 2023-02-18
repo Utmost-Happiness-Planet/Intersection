@@ -40,6 +40,7 @@ async def mcdr2qq(ws, log):
                 data = q.get()
                 log(json.dumps(data))
                 await ws.send(json.dumps(data))
+                await asyncio.sleep(0.5)
             else:
                 await asyncio.sleep(2)
     except:
