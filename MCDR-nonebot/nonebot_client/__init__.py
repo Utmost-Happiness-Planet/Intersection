@@ -36,6 +36,7 @@ def __data_command(source: InfoCommandSource, args: dict):
     else:
         source.reply(online)
 
+
 def on_load(server: PluginServerInterface, old):
     global nonebot_thread
     global data
@@ -49,7 +50,7 @@ def on_load(server: PluginServerInterface, old):
     builder.arg('info', Text)
     builder.register(server)
 
-    data.update(server.load_config_simple('config.json', {'user_id_list': {}}))
+    data.update(server.load_config_simple(default_config={'user_id_list': {}}))
     if old is not None:
         data.update(old.client.data)
         online.update(old.client.online)
@@ -85,6 +86,7 @@ def _async_raise(tid) -> int:
 
 def on_unload(server: PluginServerInterface):
     _async_raise(nonebot_thread.ident)
+    server.save_config_simple(data)
     server.logger.info('再见~')
 
 
