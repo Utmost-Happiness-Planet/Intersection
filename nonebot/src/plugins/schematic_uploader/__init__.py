@@ -41,11 +41,10 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
     if need_help:
         await sc.finish(help_text)
     elif need_list:
-        file_list: str = "\n".join([f for f in os.listdir(schematic_folder) if check_extension(f)])
-        await sc.finish(file_list)
-    else:
+        await sc.finish("\n".join([f for f in os.listdir(schematic_folder) if check_extension(f)]))
+    elif ufilename is not None:
         await bot.send(event, "[schematic]处理中，请稍后…")
-        filename: str = (ufilename if check_extension(ufilename) else ufilename + ".schematic") if ufilename is not None else (dfilename if check_extension(dfilename) else dfilename + ".schematic")
+        filename: str = ufilename if check_extension(ufilename) else ufilename + ".schematic"
         root: dict = await bot.get_group_root_files(group_id=int(event.group_id))
         files: list = root.get('files')
         for folder in root.get('folders', []):
@@ -69,6 +68,14 @@ async def link(bot: Bot, event: GroupMessageEvent, state: T_State):
                 with open(os.path.join(filename, schematic_folder), "wb") as f:
                     f.write(response.content)
             await sc.finish("[schematic]原理图上传完成!")
+    elif dfilename is not None:
+        await bot.send(event, "[schematic]处理中，请稍后…")
+        filename: str = dfilename if check_extension(dfilename) else dfilename + ".schematic"
+        if filename not in os.listdir(schematic_folder):
+            await sc.finish("[schematic]未找到原理图文件")
+        else:
+            os.remove(os.path.join(filename, schematic_folder))
+            await sc.finish("[schematic]原理图删除完成!")
 
 
 def check_extension(filename: str):
