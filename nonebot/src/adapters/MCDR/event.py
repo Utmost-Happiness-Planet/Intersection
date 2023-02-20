@@ -10,6 +10,7 @@ class Event(BaseEvent):
     type: str
     event_type: str
     name: str
+    private: bool
     msg: Message
 
     def get_type(self) -> str:
