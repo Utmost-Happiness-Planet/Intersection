@@ -1,14 +1,26 @@
-from nonebot import get_bot
+from nonebot import get_bot, get_driver
 from nonebot.adapters import Bot, Event
 from nonebot.plugin import on_message
 
 all = on_message()
 
+config = get_driver().config.dict()
+
+st_cmd = config.get('mcdr_start_command', '/nb')
+if (bot_id := config.get('mcdr_bot_id', None)) is None:
+    raise Exception('[MCDR] 未发现配置项 `mcdr_bot_id`, 请填写bot的QQ账号!')
+if (server_name := config.get('mcdr_server_name', None)) is None:
+    raise Exception('[MCDR] 未发现配置项 `mcdr_server_name`, 请填写MCDR服务器名称!')
+if (group_id := config.get('mcdr_group_id', None)) is None:
+    raise Exception('[MCDR] 未发现配置项 `mcdr_group_id`, 请填写QQ群号!')
+if (admin_list := config.get('mcdr_admin_id_list', None)) is None:
+    raise Exception('[MCDR] 未发现配置项 `mcdr_admin_id_list`, 请填写管理员QQ号列表!')
+
 
 @all.handle()
 async def handle_all(bot: Bot, event: Event):
     print(event)
-    if bot.self_id == "MCDR":
+    if bot.self_id == server_name:
         msg = ''
         type = 'group'
         if event.private is True:
@@ -24,11 +36,11 @@ async def handle_all(bot: Bot, event: Event):
         elif event.type == 'server_stop':
             msg = f'{event.get_message()}{event.get_user_id()}'
 
-        await get_bot("1875300947").call_api('send_msg',
-                                             user_id=287547656,
-                                             group_id=1083188592,
-                                             message_type=type,
-                                             message=msg)
+        await get_bot(str(bot_id)).call_api('send_msg',
+                                            user_id=admin_list[0],
+                                            group_id=group_id,
+                                            message_type=type,
+                                            message=msg)
     else:
         message = event.get_message()
         private = False
@@ -38,10 +50,10 @@ async def handle_all(bot: Bot, event: Event):
         print(message[0])
         msg = str(message[0])
         api = 'send_msg'
-        if msg.startswith("/nb"):
+        if msg.startswith(st_cmd):
             msg = msg.split()
             if msg[1] == 'dbg':
-                if event.get_user_id() != '287547656':
+                if int(event.get_user_id()) not in admin_list:
                     return
                 api = 'dbg'
                 if len(msg) > 2:
@@ -54,32 +66,3 @@ async def handle_all(bot: Bot, event: Event):
         else:
             msg = message.extract_plain_text()
         await get_bot("MCDR").call_api(api, user_id=event.user_id, message=msg, private=private)
-    # a = {
-    #     'time': 1676724194,
-    #     'self_id': 1875300947,
-    #     'post_type': 'message',
-    #     'sub_type': 'normal',
-    #     'user_id': 287547656,
-    #     'message_type': 'group',
-    #     'message_id': 2020239082,
-    #     'message': 123,
-    #     'original_message': 123,
-    #     'raw_message': '123',
-    #     'font': 0,
-    #     'sender': {
-    #         'user_id': 287547656,
-    #         'nickname': 'MC_cube',
-    #         'sex': 'unknown',
-    #         'age': 0,
-    #         'card': 'MC_cubes',
-    #         'area': '',
-    #         'level': '',
-    #         'role': 'owner',
-    #         'title': ''
-    #     },
-    #     'to_me': False,
-    #     'reply': None,
-    #     'group_id': 1083188592,
-    #     'anonymous': None,
-    #     'message_seq': 85289
-    # }
