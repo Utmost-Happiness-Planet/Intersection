@@ -36,7 +36,7 @@ async def qq2mcdr(ws, server: PluginServerInterface):
             if msg["params"]["message"] == 'data':
                 message = str(data)
             elif msg["params"]["message"] == 'online':
-                message = str(online) 
+                message = str(online)
             else:
                 message = ''
             await ws.send(
@@ -89,6 +89,7 @@ async def main(server: PluginServerInterface = None):
         log = server.logger.info
     else:
         log = print
+    i = 5
     while True:
         try:
             log('初始化连接...')
@@ -97,9 +98,8 @@ async def main(server: PluginServerInterface = None):
                 for task in [asyncio.create_task(task) for task in task_list]:
                     await task
         except Exception as e:
-            log(f'{e}\n连接已断开, 十秒后重连...')
-            await asyncio.sleep(10)
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
+            if i == 0:
+                break
+            log(f'{e}\n连接已断开，剩余尝试次数: {i}, 五秒后重连...')
+            i -= 1
+            await asyncio.sleep(5)

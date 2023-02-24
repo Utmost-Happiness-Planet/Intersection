@@ -10,10 +10,15 @@ nonebot_thread: FunctionThread = None
 
 @new_thread('nonebot')
 def start(server: PluginServerInterface):
+    global nonebot_thread
     try:
         asyncio.run(main(server))
     except:
         server.logger.info('nonebot客户端已停止')
+        return
+    nonebot_thread = None
+    server.logger.info('nonebot客户端已关闭')
+    server.unload_plugin("nonebot_client")
 
 
 def __root_command(source: InfoCommandSource):
@@ -70,7 +75,6 @@ def on_load(server: PluginServerInterface, old):
     data.update(server.load_config_simple(default_config={'user_id_list': {}}))
     if old is not None:
         online.update(old.client.online)
-    server.logger.warn(data)
     nonebot_thread = start(server)
     server.logger.info('nonebot客户端已启动')
     q.put({
@@ -115,13 +119,16 @@ def _async_raise(tid) -> int:
 
 
 def on_unload(server: PluginServerInterface):
-    server.logger.info('等待消息处理完成...')
-    while True:
-        if q.qsize() > 0:
-            time.sleep(0.5)
-        else:
-            break
-    _async_raise(nonebot_thread.ident)
+    if nonebot_thread is not None:
+        server.logger.info('等待消息处理完成...')
+        i = 20
+        while i:
+            if q.qsize() > 0:
+                i -= 1
+                time.sleep(0.5)
+            else:
+                break
+        _async_raise(nonebot_thread.ident)
     server.save_config_simple(data)
     server.logger.info('再见~')
 
