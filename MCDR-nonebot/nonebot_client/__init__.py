@@ -72,7 +72,11 @@ def on_load(server: PluginServerInterface, old):
     builder.arg('info', Text)
     builder.register(server)
 
-    data.update(server.load_config_simple(default_config={'user_id_list': {}}))
+    data.update(
+        server.load_config_simple(default_config={
+            'url': 'ws://localhost:8080/MCDR',
+            'user_id_list': {}
+        }))
     if old is not None:
         online.update(old.client.online)
     nonebot_thread = start(server)
@@ -98,6 +102,7 @@ def on_info(server: PluginServerInterface, info: Info):
     elif info.is_from_server:
         type = 'server'
         private = True
+        return
     q.put({
         'type': type,
         'event_type': 'message',

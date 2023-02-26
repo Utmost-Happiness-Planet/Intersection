@@ -6,7 +6,6 @@ from queue import Queue
 import websockets
 from mcdreforged.api.all import *
 
-url = 'ws://localhost:8080/MCDR'
 headers = {'server_name': 'MCDR'}
 q: Queue = Queue(100)
 data: dict = {}
@@ -93,7 +92,7 @@ async def main(server: PluginServerInterface = None):
     while True:
         try:
             log('初始化连接...')
-            async with websockets.connect(url, extra_headers=headers) as ws:
+            async with websockets.connect(data['url'], extra_headers=headers) as ws:
                 task_list = [qq2mcdr(ws, server), heartbeat(ws), mcdr2qq(ws)]
                 for task in [asyncio.create_task(task) for task in task_list]:
                     await task

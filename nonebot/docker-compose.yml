@@ -1,0 +1,13 @@
+version: "3"
+services:
+  nonebot:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - ".env.prod"
+    environment:
+      - ENVIRONMENT=prod
+      - APP_MODULE=bot:app
+      - MAX_WORKERS=1
+    network_mode: bridge
