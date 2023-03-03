@@ -22,9 +22,9 @@ async def handle_all(bot: Bot, event: Event):
     print(event)
     if bot.self_id == server_name:
         msg = ''
-        type = 'group'
+        message_type = 'group'
         if event.private is True:
-            type = ''
+            message_type = ''
         if event.type == 'player':
             msg = f'<{event.get_user_id()}> {event.get_message()}'
         elif event.type == 'info' or event.type == 'dbg':
@@ -39,16 +39,18 @@ async def handle_all(bot: Bot, event: Event):
         await get_bot(str(bot_id)).call_api('send_msg',
                                             user_id=admin_list[0],
                                             group_id=group_id,
-                                            message_type=type,
+                                            message_type=message_type,
                                             message=msg)
     else:
-        message = event.get_message()
         private = False
         if event.message_type == 'private':
             private = True
-        print(event.dict())
-        print(message[0])
+        elif event.group_id != group_id:
+            return
+        # print(event.dict())
+        message = event.get_message()
         msg = str(message[0])
+        # print(msg)
         api = 'send_msg'
         if msg.startswith(st_cmd):
             msg = msg.split()
